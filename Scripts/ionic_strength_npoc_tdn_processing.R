@@ -55,8 +55,12 @@ read_mes <- function(readme){
 # 3. Import data ---------------------------------------------------------------
 
 ## Create a list of files to download
-files <- list.files(path = directory, pattern = "Summary", full.names = TRUE) 
-ReadMes <- list.files(path = directory, pattern = "Readme", full.names = TRUE) 
+filesall <- list.files(path = directory, pattern = "Summary", full.names = TRUE) 
+files_recovery <- list.files(path = directory, pattern = "Summary.+RECOVERY", full.names = TRUE) 
+files <- base::setdiff(filesall,files_recovery)
+ReadMesall <- list.files(path = directory, pattern = "Readme", full.names = TRUE) 
+ReadMesrecovery <- list.files(path = directory, pattern = "Readme.+RECOVERY", full.names = TRUE) 
+ReadMes <- base::setdiff(ReadMesall,ReadMesrecovery)
 
 npoc_raw <- files %>% 
   map_df(read_data) %>% 
@@ -204,6 +208,9 @@ npoc_wmeta <- npoc_flags %>%
                                TRUE ~ Treatment))
 
 # 8. Write data ----------------------------------------------------------------
+#look at all your data before saving:
+
+View(npoc_wmeta)
 
 #not sure the blank is >25% is staying to the end of this data frame 
 write_csv(npoc_wmeta, "../tempest_ionic_strength/Data/Processed Data/ISTMP_NPOC_TDN_L1.csv")
