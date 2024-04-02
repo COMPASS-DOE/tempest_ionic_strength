@@ -1,0 +1,82 @@
+[Header]	
+System	9 mL TOC-L with TNM	
+S/W Version	1.00	
+User		
+Date/Time	4/1/2024 4:43:12 PM	
+
+[System]	
+Instrument Options	TOC/ASI/IC Unit/TN/Sparge Kit/	
+
+[Data]	
+Type	Anal.	Sample Name	Sample ID	Result(TOC)	Result(TC)	Result(IC)	Result(POC)	Result(NPOC)	Result(TN)	Unit	Vial	Date / Time	
+Unknown	NPOC	Blank2	Untitled					0.2083		mg/L	15	2/1/2024 8:54:35 PM	
+Unknown	NPOC	TMP_5.A.4_EXP	Untitled					11.97		mg/L	16	2/1/2024 9:11:55 PM	
+Unknown	NPOC	TMP_100.C.5_EXP	Untitled					42.27		mg/L	17	2/1/2024 9:29:47 PM	
+Unknown	NPOC	TMP_0.B.6_EXP	Untitled					20.74		mg/L	18	2/1/2024 9:50:54 PM	
+Unknown	NPOC	TMP_5.A.6_EXP	Untitled					8.911		mg/L	19	2/1/2024 10:07:58 PM	
+Unknown	NPOC	TMP_0.C.4_EXP	Untitled					20.57		mg/L	20	2/1/2024 10:25:32 PM	
+Unknown	NPOC	TMP_5.C.4_EXP	Untitled					13.06		mg/L	21	2/1/2024 10:42:48 PM	
+Unknown	NPOC	TMP_100.B.5_EXP	Untitled					10.50		mg/L	22	2/1/2024 10:59:45 PM	
+Unknown	NPOC	TMP_0.A.6_EXP	Untitled					21.69		mg/L	23	2/1/2024 11:17:39 PM	
+Unknown	NPOC	TMP_5.C.6_EXP	Untitled					8.980		mg/L	24	2/1/2024 11:34:31 PM	
+Unknown	NPOC	TMP_0.A.4_EXP	Untitled					17.53		mg/L	25	2/1/2024 11:52:07 PM	
+Unknown	NPOC	Blank3	Untitled					0.1952		mg/L	26	2/2/2024 12:08:55 AM	
+Unknown	NPOC	CKSTD2_1ppmC	Untitled					1.099		mg/L	27	2/2/2024 12:28:09 AM	
+Unknown	NPOC	Blank4	Untitled					0.1446		mg/L	28	2/2/2024 12:44:50 AM	
+Unknown	NPOC	TMP_5.B.4_EXP	Untitled					10.14		mg/L	29	2/2/2024 1:01:30 AM	
+Unknown	NPOC	TMP_100.A.5_EXP	Untitled					9.867		mg/L	30	2/2/2024 1:18:31 AM	
+Unknown	NPOC	TMP_5.B.6_EXP	Untitled					8.726		mg/L	31	2/2/2024 1:35:14 AM	
+Unknown	NPOC	TMP_0.B.4_EXP	Untitled					17.38		mg/L	32	2/2/2024 1:52:42 AM	
+Unknown	NPOC	TMP_25.C.1_EXP	Untitled					28.65		mg/L	33	2/2/2024 2:10:50 AM	
+Unknown	NPOC	TMP_01.B.2_EXP	Untitled					8.571		mg/L	34	2/2/2024 2:28:02 AM	
+Unknown	NPOC	TMP_01.A.4_EXP	Untitled					16.48		mg/L	35	2/2/2024 2:45:36 AM	
+Unknown	NPOC	TMP_100.A.1_EXP	Untitled					28.95		mg/L	36	2/2/2024 3:03:35 AM	
+Unknown	NPOC	TMP_25.A.1_EXP	Untitled					18.32		mg/L	37	2/2/2024 3:21:10 AM	
+Unknown	NPOC	TMP_01.A.2_EXP	Untitled					9.316		mg/L	38	2/2/2024 3:38:04 AM	
+Unknown	NPOC	Blank5	Untitled					0.1954		mg/L	39	2/2/2024 3:54:57 AM	
+Unknown	NPOC	CKSTD3_1ppmC	Untitled					1.129		mg/L	40	2/2/2024 4:13:59 AM	
+Unknown	NPOC	Blank6	Untitled					0.3454		mg/L	41	2/2/2024 4:31:56 AM	
+Unknown	NPOC	TMP_01.B.4_EXP	Untitled					10.08		mg/L	42	2/2/2024 4:48:46 AM	
+Unknown	NPOC	TMP_100.B.1_EXP	Untitled					29.05		mg/L	43	2/2/2024 5:06:31 AM	
+Unknown	NPOC	TMP_BLK3_EXP	Untitled					26.79		mg/L	44	2/2/2024 5:24:17 AM	
+Unknown	NPOC	TMP_01.C.2_EXP	Untitled					27.77		mg/L	45	2/2/2024 5:42:01 AM	
+Unknown	NPOC	TMP_01.C.4_EXP	Untitled					16.31		mg/L	46	2/2/2024 5:59:40 AM	
+Unknown	NPOC	TMP_100.C.1_EXP	Untitled					27.50		mg/L	47	2/2/2024 6:17:18 AM	
+Unknown	NPOC	TMP_01.B.5_EXP	Untitled					4.355		mg/L	48	2/2/2024 6:33:38 AM	
+Unknown	NPOC	TMP_5.B.1_EXP	Untitled					22.06		mg/L	49	2/2/2024 6:51:24 AM	
+Unknown	NPOC	TMP_01.C.3_EXP	Untitled					9.181		mg/L	50	2/2/2024 7:08:21 AM	
+Unknown	NPOC	TMP_25.B.2_EXP	Untitled					29.81		mg/L	51	2/2/2024 7:26:04 AM	
+Unknown	NPOC	Blank7	Untitled					0.2085		mg/L	52	2/2/2024 7:40:40 AM	
+Unknown	NPOC	CKSTD4_1ppmC	Untitled					1.125		mg/L	53	2/2/2024 7:59:51 AM	
+Unknown	NPOC	Blank8	Untitled					0.1829		mg/L	54	2/2/2024 8:16:46 AM	
+Unknown	NPOC	TMP_01.C.5_EXP	Untitled					9.320		mg/L	55	2/2/2024 8:33:55 AM	
+Unknown	NPOC	TMP_5.A.1_EXP	Untitled					30.09		mg/L	56	2/2/2024 8:52:06 AM	
+Unknown	NPOC	TMP_01.A.3_EXP	Untitled					9.333		mg/L	57	2/2/2024 9:12:28 AM	
+Unknown	NPOC	TMP_25.C.2_EXP	Untitled					29.55		mg/L	58	2/2/2024 9:30:37 AM	
+Unknown	NPOC	TMP_01.A.5_EXP	Untitled					4.290		mg/L	59	2/2/2024 9:50:24 AM	
+Unknown	NPOC	TMP_5.C.1_EXP	Untitled					20.19		mg/L	60	2/2/2024 10:07:58 AM	
+Unknown	NPOC	TMP_01.B.3_EXP	Untitled					8.610		mg/L	61	2/2/2024 10:25:03 AM	
+Unknown	NPOC	TMP_25.A.2_EXP	Untitled					28.89		mg/L	62	2/2/2024 10:42:57 AM	
+Unknown	NPOC	TMP_100.C.4_EXP	Untitled					20.28		mg/L	63	2/2/2024 11:00:28 AM	
+Unknown	NPOC	TMP_01.B.6_EXP	Untitled					19.97		mg/L	64	2/2/2024 11:18:31 AM	
+Unknown	NPOC	Blank9	Untitled					0.2603		mg/L	65	2/2/2024 11:33:20 AM	
+Unknown	NPOC	CKSTD5_1ppmC	Untitled					1.207		mg/L	66	2/2/2024 11:49:44 AM	
+Unknown	NPOC	Blank10	Untitled					0.2512		mg/L	67	2/2/2024 12:04:21 PM	
+Unknown	NPOC	TMP_01.A.1_EXP	Untitled					5.140		mg/L	68	2/2/2024 12:21:01 PM	
+Unknown	NPOC	TMP_100.C.2_EXP	Untitled					5.587		mg/L	69	2/2/2024 12:37:56 PM	
+Unknown	NPOC	TMP_100.A.4_EXP	Untitled					10.39		mg/L	70	2/2/2024 12:55:00 PM	
+Unknown	NPOC	TMP_01.A.6_EXP	Untitled					20.25		mg/L	71	2/2/2024 1:12:25 PM	
+Unknown	NPOC	TMP_01.C.1_EXP	Untitled					4.683		mg/L	72	2/2/2024 1:29:05 PM	
+Unknown	NPOC	TMP_100.B.2_EXP	Untitled					5.367		mg/L	73	2/2/2024 1:45:28 PM	
+Unknown	NPOC	TMP_100.B.4_EXP	Untitled					21.05		mg/L	74	2/2/2024 2:03:40 PM	
+Unknown	NPOC	TMP_1.A.4_EXP	Untitled					9.474		mg/L	75	2/2/2024 2:20:36 PM	
+Unknown	NPOC	TMP_100.A.4_EXP	Untitled					17.95		mg/L	76	2/2/2024 2:38:24 PM	
+Unknown	NPOC	TMP_1.C.4_EXP	Untitled					15.82		mg/L	77	2/2/2024 2:55:52 PM	
+Unknown	NPOC	Blank11	Untitled					0.2128		mg/L	78	2/2/2024 3:10:20 PM	
+Unknown	NPOC	CKSTD6_1ppmC	Untitled					1.221		mg/L	79	2/2/2024 3:29:42 PM	
+Unknown	NPOC	Blank12	Untitled					0.1936		mg/L	80	2/2/2024 3:46:56 PM	
+Unknown	NPOC	TMP_0.A.2_EXP	Untitled					8.914		mg/L	81	2/2/2024 4:03:44 PM	
+Unknown	NPOC	TMP_01.B.1_EXP	Untitled					17.57		mg/L	82	2/2/2024 4:21:42 PM	
+Unknown	NPOC	Blank13	Untitled					0.3029		mg/L	83	2/2/2024 4:36:21 PM	
+Unknown	NPOC	CKSTD7_1ppmC	Untitled					1.146		mg/L	84	2/2/2024 4:52:40 PM	
+Unknown	NPOC	Blank14	Untitled					0.2560		mg/L	85	2/2/2024 5:09:53 PM	

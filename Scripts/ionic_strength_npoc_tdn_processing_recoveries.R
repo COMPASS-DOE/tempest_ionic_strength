@@ -24,6 +24,8 @@ getwd()
 
 directory = "../tempest_ionic_strength/Data/DOC"
 
+recovery_directory = "../tempest_ionic_strength/SPE/Metadata"
+
 # 2. Functions -----------------------------------------------------------------
 
 ## Create a function to read in data
@@ -51,11 +53,26 @@ read_mes <- function(readme){
     mutate(rundate = rundate)
 }
 
+recovery_dilutions <- function(recovery){
+  # read in recovery info
+  readxl::read_excel(path = recovery, sheet = 1) %>% 
+    rename(short_name = Short_ID,
+           sample_vol = mL_MeOH,
+           total_vol = water_added_mL) %>% 
+    select(short_name, sample_vol, total_vol) %>% 
+    mutate(sample_name = stringr::str_c("TMP_",short_name, "_EXP"))
+}
+
 # 3. Import data ---------------------------------------------------------------
 
 ## Create a list of files to download
 files <- list.files(path = directory, pattern = "Summary.+RECOVERY", full.names = TRUE) 
+files
 ReadMes <- list.files(path = directory, pattern = "Readme.+RECOVERY", full.names = TRUE) 
+ReadMes
+
+recoveries <- list.files(path=recovery_directory, pattern = "recovery", full.names = TRUE )
+recoveries
 
 npoc_raw <- files %>% 
   map_df(read_data) %>% 
@@ -78,7 +95,7 @@ readmes_all <- ReadMes %>%
   filter(grepl("\\.[a-zA-Z]\\.", sample_name)) %>% # filter to samples only
   bind_rows() 
 
-curvepts <-files %>% 
+curvepts <- files %>% 
   map_df(read_data) %>% 
   filter(grepl("STD_0-50ppmNPOC", sample_name)) %>% # filter to the right curve only
   rename(standard_high_C = npoc_raw) %>%
@@ -90,9 +107,17 @@ curvepts <-files %>%
   group_by(rundate) %>%
   distinct()%>%
   pivot_wider(names_from= name, values_from = value)%>%
-  bind_rows() 
+  bind_rows()
 
-View(curvepts )
+#per the read me the second run used the first run's curve...
+second_run_curve <- as.data.frame(rbind(c("20240201",50))) %>%
+  rename(rundate = V1,
+         standard_high_C = V2) %>%
+  mutate(standard_high_C = as.double(standard_high_C))
+
+curvepts <- curvepts %>% full_join(second_run_curve, by= c("rundate","standard_high_C"))
+
+View(curvepts)
 # 4. Calculate blanks and add to data ------------------------------------------
 
 blanks <- blanks_raw %>% 
