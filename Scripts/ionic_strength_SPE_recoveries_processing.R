@@ -55,7 +55,8 @@ doc_rec_cal <- doc_actual %>%
   inner_join(readme, by = "sample_name") %>%
   inner_join(doc_recoveries, by = "sample_name") %>%
   mutate(dil_fac = (total_vol * Actual_Vol_MeOH_mL) / (sample_vol * Actual_Vol_SPEd_mL),
-         doc_recovery_per = (spe_doc_mg_l * dil_fac * 100) / doc_mg_l)
+         doc_recovery_per = (spe_doc_mg_l * dil_fac * 100) / doc_mg_l) %>%
+  arrange(EMSL_ID)
 
 #these look insane but...
 write_csv(doc_rec_cal, "../tempest_ionic_strength/Data/SPE_recoveries_calculated.csv")
