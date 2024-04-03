@@ -49,7 +49,7 @@ read_mes <- function(readme){
     rename(sample_name = `Sample Name`,
            sample_vol = `Sample wt`,
            total_vol = `Total vol`) %>% 
-    select(sample_name, Action, sample_vol, total_vol) %>% 
+    select(sample_name, Action) %>% 
     mutate(rundate = rundate)
 }
 
@@ -59,8 +59,8 @@ recovery_dilutions <- function(recovery){
     rename(short_name = Short_ID,
            sample_vol = mL_MeOH,
            total_vol = water_added_mL) %>% 
-    select(short_name, sample_vol, total_vol) %>% 
-    mutate(sample_name = stringr::str_c("TMP_",short_name, "_EXP"))
+    mutate(sample_name = stringr::str_c("TMP_",short_name, "_EXP"))   %>%
+  select(sample_name, Action, sample_vol, total_vol) 
 }
 
 # 3. Import data ---------------------------------------------------------------
@@ -73,6 +73,19 @@ ReadMes
 
 recoveries <- list.files(path=recovery_directory, pattern = "recovery", full.names = TRUE )
 recoveries
+
+recoveries_raw <- recoveries %>% 
+  map_df(recovery_dilutions) %>% 
+  filter(grepl("\\.[a-zA-Z]\\.", sample_name)) %>% # filter to samples only
+  filter(!grepl("omit", Action)) %>%
+  select(-Action) %>%
+  bind_rows() 
+
+recoveries_raw_action <- recoveries %>% 
+  map_df(recovery_dilutions) %>% 
+  filter(grepl("\\.[a-zA-Z]\\.", sample_name)) %>% # filter to samples only
+  filter(grepl("omit", Action)) %>%
+  bind_rows() 
 
 npoc_raw <- files %>% 
   map_df(read_data) %>% 
@@ -130,11 +143,16 @@ blanks <- blanks_raw %>%
 
 View(blanks) # Check out the blank data 
 
+### for recoveries, you need to blank correct
+
+npoc_blk_corrected <- npoc_raw %>%
+  inner_join(blanks, by = "rundate") %>% 
+  mutate(npoc_corrected = npoc_raw - npoc_blank)
+
 # 5. Flag sketch data -----------------------------------------------------------
 
-npoc_flagged <- npoc_raw %>% 
+npoc_flagged <- npoc_blk_corrected %>% 
   filter(grepl("\\.[a-zA-Z]\\.", sample_name)) %>% # filter to samples only
-  inner_join(blanks, by = "rundate") %>% 
   inner_join(curvepts, by= "rundate") %>%
   mutate(
          #most curves only to 50, those samples were not above it. making 100 for the August and September, which used 0-100
@@ -148,34 +166,39 @@ npoc_flagged <- npoc_raw %>%
   )
 
 # 6. Dilution Corrections ------------------------------------------------------
-
-dilutions = 
-  readmes_dilution_action %>% 
-  mutate(Dilution =  total_vol/(sample_vol/1000)) %>% 
-  dplyr::select(rundate, sample_name, Action, Dilution) %>% 
+# total_volume = 7/.2
+# 
+ dilutions = 
+   readmes_dilution_action %>% 
+   left_join(recoveries_raw,  by="sample_name") %>%
+#   mutate(Dilution =  total_vol/sample_vol) %>% 
+   dplyr::select(rundate, sample_name, total_vol, sample_vol) %>% 
+#   mutate(Dilution = case_when(is.na(Dilution) ~ total_volume,
+#          TRUE ~ Dilution)) %>%
   force()
 
-samples_to_dilution_corrected = 
-  npoc_flagged %>%
-  left_join(dilutions, by = c("sample_name", "rundate")) %>% 
-  filter(grepl("ilution correction", Action)) %>%
-  filter(!Action %in% "Omit") %>% 
-  mutate(doc_mg_l= npoc_raw * Dilution, # True concentration = diluted concentration * total vol / sample vol
-         doc_mg_l = as.numeric(doc_mg_l), doc_mg_l = round(doc_mg_l, 2)
-         ) %>%
-  mutate(doc_mg_l = case_when(Dilution > 30 & npoc_flag == "blank is ≥ 15% of sample value" ~ NA,
-                              TRUE ~ doc_mg_l), # removing values if high blanks and high dilution ratios, potentially large source of error. 
-         npoc_flag = case_when(is.na(doc_mg_l) ~ "omitted for high dilution and blank values",
-                               TRUE ~ npoc_flag)) # removing values if high blanks and high dilution ratios, potentially large source of error. 
+#samples_to_dilution_corrected = 
+#  npoc_flagged %>%
+ # left_join(dilutions, by = c("sample_name", "rundate")) %>% 
+ # filter(grepl("ilution correction", Action)) %>%
+ # filter(!Action %in% "Omit") %>% 
+ # mutate(doc_mg_l= npoc_corrected * Dilution , # True concentration x dilution correction
+  #       doc_mg_l = as.numeric(doc_mg_l), doc_mg_l = round(doc_mg_l, 2)
+#         ) %>%
+ # mutate(doc_mg_l = case_when(Dilution > 30 & npoc_flag == "blank is ≥ 15% of sample value" ~ NA,
+  #                            TRUE ~ doc_mg_l), # removing values if high blanks and high dilution ratios, potentially large source of error. 
+ #        npoc_flag = case_when(is.na(doc_mg_l) ~ "omitted for high dilution and blank values",
+  #                             TRUE ~ npoc_flag)) # removing values if high blanks and high dilution ratios, potentially large source of error. 
 
 all_samples_dilution_corrected =
   npoc_flagged %>%
-  left_join(readmes_all, by = c("sample_name", "rundate")) %>% 
-  mutate(doc_mg_l = npoc_raw) %>%
-  filter(!grepl("ilution correction", Action)) %>% 
+  inner_join(readmes_all, by = c("sample_name", "rundate")) %>% 
+  inner_join(dilutions, by = c("sample_name", "rundate")) %>%
+  mutate(doc_mg_l = npoc_corrected) %>%
+ # filter(!grepl("ilution correction", Action)) %>% 
   filter(!Action %in% "Omit") %>%
-  bind_rows(samples_to_dilution_corrected) %>%
-  dplyr::select(sample_name, rundate, doc_mg_l, npoc_flag)%>%
+ # bind_rows(samples_to_dilution_corrected) %>%
+  dplyr::select(sample_name, rundate, doc_mg_l, npoc_flag, sample_vol, total_vol)%>%
   mutate(doc_mg_l = if_else(doc_mg_l < 0, "NA", as.character(doc_mg_l)),
          doc_mg_l = as.numeric(doc_mg_l), doc_mg_l = round(doc_mg_l, 2))
 
@@ -185,14 +208,12 @@ duplicates <- all_samples_dilution_corrected %>% subset(duplicated(sample_name))
 
 View(duplicates)
 
-## no duplicates so removed that part of the code. 
-
 
 ## 7. Clean data ----------------------------------------------------------------
 
 
 ## Flagging data
-npoc_flags <- all_samples_dilution_corrected%>% 
+npoc_flags <- all_samples_dilution_corrected %>% 
   ## add flags 
   # Below blank 
   mutate(npoc_flag = case_when(
@@ -208,12 +229,18 @@ npoc_wmeta <- npoc_flags %>%
          Wash = stringr::str_extract(sample_name, "(?<=\\.[a-zA-Z].)\\d+")
          ) %>%
   mutate(Treatment = case_when(Treatment == "01" ~ "0.1",
-                               TRUE ~ Treatment))
+                               TRUE ~ Treatment),
+         sample_vol = case_when(is.na(sample_vol) ~ 0.2,
+                                TRUE ~sample_vol),
+         total_vol = case_when(is.na(total_vol) ~ 7,
+                                TRUE ~ total_vol),) 
+
+View(npoc_wmeta)
 
 # 8. Write data ----------------------------------------------------------------
 
 #not sure the blank is >25% is staying to the end of this data frame 
-write_csv(npoc_wmeta, "../tempest_ionic_strength/Data/Processed Data/Recoveries_NPOC_L1.csv")
+write_csv(npoc_wmeta, "../tempest_ionic_strength/Data/Processed Data/DOC/Recoveries_NPOC_L1.csv")
 
 treatment_order <- c('0','0.1','1','5', '25', '100')
 

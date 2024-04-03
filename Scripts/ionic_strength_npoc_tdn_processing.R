@@ -213,7 +213,7 @@ npoc_wmeta <- npoc_flags %>%
 View(npoc_wmeta)
 
 #not sure the blank is >25% is staying to the end of this data frame 
-write_csv(npoc_wmeta, "../tempest_ionic_strength/Data/Processed Data/ISTMP_NPOC_TDN_L1.csv")
+write_csv(npoc_wmeta, "../tempest_ionic_strength/Data/Processed Data/DOC/ISTMP_NPOC_TDN_L1.csv")
 
 treatment_order <- c('0','0.1','1','5', '25', '100')
 
