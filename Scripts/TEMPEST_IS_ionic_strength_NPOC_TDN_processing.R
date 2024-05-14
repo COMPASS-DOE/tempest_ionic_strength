@@ -15,14 +15,15 @@ pacman::p_load(tidyverse, # keep things tidy
                googlesheets4, # read_sheet 
                googledrive) # drive_ functions
 
-#double check your wd. should be ../GCReW_Feb2024
+#double check your wd. should be ../tempest_ionic_strength
 #if not you need to do new relative file pathing
 
 getwd()
-setwd("/Users/kimj704/Github/TEMPEST_IS_DOC/Raw data")
+setwd("/Users/kimj704/Github/tempest_ionic_strength")
 
-## Set filepath for NPOC raw data files:
-directory = "/Users/kimj704/Github/TEMPEST_IS_DOC/Raw data"
+## Set Github filepath for NPOC raw data files:
+
+directory = "../tempest_ionic_strength/Data/DOC"
 
 # 2. Functions -----------------------------------------------------------------
 
@@ -55,35 +56,35 @@ read_mes <- function(readme){
 # 3. Import data ---------------------------------------------------------------
 
 ## Create a list of files to download
-filesall <- list.files(path = directory, pattern = "Summary", full.names = TRUE) 
-#files_recovery <- list.files(path = directory, pattern = "Summary.+RECOVERY", full.names = TRUE) 
-#files <- base::setdiff(filesall,files_recovery)
-#ReadMesall <- list.files(path = directory, pattern = "Readme", full.names = TRUE) 
-#ReadMesrecovery <- list.files(path = directory, pattern = "Readme.+RECOVERY", full.names = TRUE) 
-#ReadMes <- base::setdiff(ReadMesall,ReadMesrecovery)
+filesall <- list.files(path = directory, pattern = "Summary.+IS", full.names = TRUE) 
+files_recovery <- list.files(path = directory, pattern = "Summary.IS.+RECOVERY", full.names = TRUE) 
+files <- base::setdiff(filesall,files_recovery)
+ReadMesall <- list.files(path = directory, pattern = "Readme.+IS", full.names = TRUE) 
+ReadMesrecovery <- list.files(path = directory, pattern = "Readme.IS.+RECOVERY", full.names = TRUE) 
+ReadMes <- base::setdiff(ReadMesall,ReadMesrecovery)
 
-npoc_raw <- filesall %>% 
+npoc_raw <- files %>% 
   map_df(read_data) %>% 
   filter(grepl("TMP_IS_", sample_name)) %>% # filter to samples only (pattern: TMP_IS_)
   bind_rows() 
 
-blanks_raw <- filesall %>% 
+blanks_raw <- files %>% 
   map_df(read_data) %>% 
   filter(grepl("^Blank", sample_name)) %>% # filter to blanks only
   bind_rows() 
 
-#readmes_dilution_action <- ReadMes %>% 
-#  map_df(read_mes) %>% 
-#  filter(grepl("\\.[a-zA-Z]\\.", sample_name)) %>% # filter to samples only
-#  filter(grepl("ilution correction", Action)) %>%
-#  bind_rows() 
+readmes_dilution_action <- ReadMes %>% 
+  map_df(read_mes) %>% 
+  filter(grepl("TMP_IS_", sample_name)) %>% # filter to samples only
+  filter(grepl("ilution correction", Action)) %>%
+  bind_rows() 
 
-#readmes_all <- ReadMes %>% 
-#  map_df(read_mes) %>% 
-#  filter(grepl("\\.[a-zA-Z]\\.", sample_name)) %>% # filter to samples only
-#  bind_rows() 
+readmes_all <- ReadMes %>% 
+  map_df(read_mes) %>% 
+  filter(grepl("TMP_IS_", sample_name)) %>% # filter to samples only
+  bind_rows() 
 
-curvepts <-filesall %>% 
+curvepts <-files %>% 
   map_df(read_data) %>% #some curves were omitted according to the read mes, but this doesn't matter rn because all the same range. 
   filter(grepl("STD_", sample_name)) %>% # filter to curves only
   rename(standard_high_C = npoc_raw,
@@ -124,37 +125,37 @@ npoc_flagged <- npoc_raw %>%
                               tdn_blank > 0.15*tdn_raw ~ "blank is ≥ 15% of sample value"), # flagging if blank concentration is > 20% of the sample concentration 
   #most curves only to 50, those samples were not above it. making 100 for the August and September, which used 0-100
         npoc_flag = case_when(npoc_raw > standard_high_C ~ "value above cal curve",
-                              npoc_blank > 0.15*npoc_raw ~ "blank is ≥ 15% of sample value") # flagging if blank concentration is > 20% of the sample concentration
-  # npoc_raw = case_when(npoc_flag == "incorrect sample naming, cannot resolve" ~ NA,
-  #                      TRUE ~ npoc_raw),
-  # tdn_raw = case_when(tdn_flag == "incorrect sample naming, cannot resolve" ~ NA,
-  #                     TRUE ~ tdn_raw)
+                              npoc_blank > 0.15*npoc_raw ~ "blank is ≥ 15% of sample value"), # flagging if blank concentration is > 20% of the sample concentration
+   npoc_raw = case_when(npoc_flag == "incorrect sample naming, cannot resolve" ~ NA,
+                        TRUE ~ npoc_raw),
+   tdn_raw = case_when(tdn_flag == "incorrect sample naming, cannot resolve" ~ NA,
+                       TRUE ~ tdn_raw)
   )
 
 # 6. Dilution Corrections ------------------------------------------------------
 #
-#dilutions = 
-#  readmes_dilution_action %>% 
-#  mutate(Dilution =  total_vol/sample_vol) %>% 
-#  dplyr::select(rundate, sample_name, Action, Dilution) %>% 
-#  force()
+dilutions = 
+  readmes_dilution_action %>% 
+  mutate(Dilution =  total_vol/sample_vol) %>% 
+  dplyr::select(rundate, sample_name, Action, Dilution) %>% 
+  force()
 
-#samples_to_dilution_corrected = 
-#  npoc_flagged %>%
-#  left_join(dilutions, by = c("sample_name", "rundate")) %>% 
-#  filter(grepl("ilution correction", Action)) %>%
-#  filter(!Action %in% "Omit") %>% 
-#  mutate(doc_mg_l= npoc_raw * Dilution, tdn_mg_l = tdn_raw * Dilution, # True concentration = diluted concentration * total vol / sample vol
-#         doc_mg_l = as.numeric(doc_mg_l), doc_mg_l = round(doc_mg_l, 2),
-#         tdn_mg_l= as.numeric(tdn_mg_l), tdn_mg_l= round(tdn_mg_l, 2)) %>%
-#  mutate(doc_mg_l = case_when(Dilution > 30 & npoc_flag == "blank is ≥ 15% of sample value" ~ NA,
-#                              TRUE ~ doc_mg_l), # removing values if high blanks and high dilution ratios, potentially large source of error. 
-#         npoc_flag = case_when(is.na(doc_mg_l) ~ "omitted for high dilution and blank values",
-#                               TRUE ~ npoc_flag),
-#         tdn_mg_l = case_when(Dilution > 30 & tdn_flag == "blank is ≥ 15% of sample value" ~ NA,
-#                              TRUE ~ tdn_mg_l),
-#         tdn_flag = case_when(is.na(tdn_mg_l) ~ "omitted for high dilution and blank values",
-#                             TRUE ~ tdn_flag)) # removing values if high blanks and high dilution ratios, potentially large source of error. 
+samples_to_dilution_corrected = 
+  npoc_flagged %>%
+  left_join(dilutions, by = c("sample_name", "rundate")) %>% 
+  filter(grepl("ilution correction", Action)) %>%
+  filter(!Action %in% "Omit") %>% 
+  mutate(doc_mg_l= npoc_raw * Dilution, tdn_mg_l = tdn_raw * Dilution, # True concentration = diluted concentration * total vol / sample vol
+         doc_mg_l = as.numeric(doc_mg_l), doc_mg_l = round(doc_mg_l, 2),
+         tdn_mg_l= as.numeric(tdn_mg_l), tdn_mg_l= round(tdn_mg_l, 2)) %>%
+  mutate(doc_mg_l = case_when(Dilution > 30 & npoc_flag == "blank is ≥ 15% of sample value" ~ NA,
+                              TRUE ~ doc_mg_l), # removing values if high blanks and high dilution ratios, potentially large source of error. 
+         npoc_flag = case_when(is.na(doc_mg_l) ~ "omitted for high dilution and blank values",
+                               TRUE ~ npoc_flag),
+         tdn_mg_l = case_when(Dilution > 30 & tdn_flag == "blank is ≥ 15% of sample value" ~ NA,
+                              TRUE ~ tdn_mg_l),
+         tdn_flag = case_when(is.na(tdn_mg_l) ~ "omitted for high dilution and blank values",
+                             TRUE ~ tdn_flag)) # removing values if high blanks and high dilution ratios, potentially large source of error. 
 
 all_samples_dilution_corrected =
   npoc_flagged %>%
@@ -198,7 +199,13 @@ npoc_flags <- all_samples_dilution_corrected%>%
     tdn_mg_l = case_when(tdn_mg_l == "NaN" ~ NA,
                          TRUE ~ tdn_mg_l))
 
-npoc_meta <- npoc_flags #%>%
+
+metadata <- read_excel("../tempest_ionic_strength/other files/Sample_list_IS_April2024.xlsx")
+
+npoc_meta <- merge(metadata[,-1], npoc_flags, by.x = "Random_ID", by.y = "sample_name")
+ordered_npoc_meta <- npoc_meta[order(npoc_meta$Treatment, npoc_meta$Wash, npoc_meta$Rep),]
+
+#npoc_meta <- npoc_flags %>%
 #  mutate(Treatment = stringr::str_extract(sample_name, "\\d+(?=\\.)"),
 #         Wash = stringr::str_extract(sample_name, "(?<=\\.[a-zA-Z].)\\d+")
 #  ) %>%
@@ -208,10 +215,10 @@ npoc_meta <- npoc_flags #%>%
 # 8. Write data ----------------------------------------------------------------
 #look at all your data before saving:
 
-View(npoc_meta)
+View(ordered_npoc_meta)
 
 #not sure the blank is >25% is staying to the end of this data frame 
-write_csv(npoc_meta, "/Users/kimj704/Github/TEMPEST_IS_DOC/TEMPEST_IS_NPOC_TN_processed.csv")
+write_csv(ordered_npoc_meta, "../tempest_ionic_strength/Data/Processed Data/DOC/TEMPEST_IS_NPOC_TN_processed.csv")
 
 #treatment_order <- c('0','0.1','1','5', '25', '100')
 
