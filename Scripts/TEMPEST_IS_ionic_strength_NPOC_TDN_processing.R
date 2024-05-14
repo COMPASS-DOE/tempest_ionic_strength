@@ -220,14 +220,14 @@ View(ordered_npoc_meta)
 #not sure the blank is >25% is staying to the end of this data frame 
 write_csv(ordered_npoc_meta, "../tempest_ionic_strength/Data/Processed Data/DOC/TEMPEST_IS_NPOC_TN_processed.csv")
 
-#treatment_order <- c('0','0.1','1','5', '25', '100')
+treatment_order <- c('0','0.1','1','5', '25', '100')
 
 # Plot
-#npoc_meta %>%
-#  group_by(Treatment, Wash) %>%
-#  dplyr::summarise(mean_doc_mg_l = mean(doc_mg_l, na.rm=TRUE), sd_doc_mg_l = sd(doc_mg_l, na.rm=TRUE)) %>%
-#  ggplot()+
-#  geom_pointrange(aes(x=Wash, y=mean_doc_mg_l, ymin = mean_doc_mg_l- sd_doc_mg_l, ymax = mean_doc_mg_l + sd_doc_mg_l, color= factor(Treatment, levels= treatment_order))) +
-#  geom_path(aes(x=Wash, y=mean_doc_mg_l, color= factor(Treatment, levels= treatment_order), group=factor(Treatment, levels= treatment_order) )) +
-#  theme_classic() +
-#  labs(x = "Wash", y = "DOC mgC/L", color = "% ASW")
+ordered_npoc_meta %>%
+  group_by(Treatment, Wash) %>%
+  dplyr::summarise(mean_doc_mg_l = mean(doc_mg_l, na.rm=TRUE), sd_doc_mg_l = sd(doc_mg_l, na.rm=TRUE)) %>%
+  ggplot()+
+  geom_pointrange(aes(x=Wash, y=mean_doc_mg_l, ymin = mean_doc_mg_l- sd_doc_mg_l, ymax = mean_doc_mg_l + sd_doc_mg_l, color= factor(Treatment, levels= treatment_order))) +
+  geom_path(aes(x=Wash, y=mean_doc_mg_l, color= factor(Treatment, levels= treatment_order), group=factor(Treatment, levels= treatment_order) )) +
+  theme_classic() +
+  labs(x = "Wash", y = "DOC mgC/L", color = "% ASW")
