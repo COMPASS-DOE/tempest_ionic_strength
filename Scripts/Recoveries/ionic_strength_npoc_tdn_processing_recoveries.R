@@ -233,7 +233,10 @@ npoc_wmeta <- npoc_flags %>%
          sample_vol = case_when(is.na(sample_vol) ~ 0.2,
                                 TRUE ~sample_vol),
          total_vol = case_when(is.na(total_vol) ~ 7,
-                                TRUE ~ total_vol),) 
+                                TRUE ~ total_vol),) %>%
+  mutate(Exp_Type = "Recoveries") %>%
+  select(Exp_Type, Treatment, Wash, Rep, Sample_ID, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag)
+
 
 View(npoc_wmeta)
 

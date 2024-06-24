@@ -19,7 +19,7 @@ pacman::p_load(tidyverse, # keep things tidy
 #if not you need to do new relative file pathing
 
 getwd()
-setwd("/Users/kimj704/Github/tempest_ionic_strength")
+#setwd("/Users/kimj704/Github/tempest_ionic_strength")
 
 ## Set Github filepath for NPOC raw data files:
 
@@ -160,15 +160,15 @@ samples_to_dilution_corrected =
 all_samples_dilution_corrected =
   npoc_flagged %>%
 #  left_join(readmes_all, by = c("sample_name", "rundate")) %>% 
-  mutate(doc_mg_l = npoc_raw, tdn_mg_l = tdn_raw) #%>%
+  mutate(doc_mg_l = npoc_raw, tdn_mg_l = tdn_raw) %>%
 #  filter(!grepl("ilution correction", Action)) %>% 
 #  filter(!Action %in% "Omit") %>%
 #  bind_rows(samples_to_dilution_corrected) %>%
-#  dplyr::select(sample_name, rundate, doc_mg_l, tdn_mg_l, npoc_flag, tdn_flag)%>%
-#  mutate(doc_mg_l = if_else(doc_mg_l < 0, "NA", as.character(doc_mg_l)),
-#         tdn_mg_l = if_else(tdn_mg_l < 0, "NA", as.character(tdn_mg_l)),
-#         doc_mg_l = as.numeric(doc_mg_l), doc_mg_l = round(doc_mg_l, 2),
-#         tdn_mg_l= as.numeric(tdn_mg_l), tdn_mg_l= round(tdn_mg_l, 2))
+  dplyr::select(sample_name, rundate, doc_mg_l, tdn_mg_l, npoc_flag, tdn_flag)%>%
+  mutate(doc_mg_l = if_else(doc_mg_l < 0, "NA", as.character(doc_mg_l)),
+         tdn_mg_l = if_else(tdn_mg_l < 0, "NA", as.character(tdn_mg_l)),
+         doc_mg_l = as.numeric(doc_mg_l), doc_mg_l = round(doc_mg_l, 2),
+         tdn_mg_l= as.numeric(tdn_mg_l), tdn_mg_l= round(tdn_mg_l, 2))
   
 #Identify if any duplicates were run, this should return an empty data frame if not:#
 
@@ -183,7 +183,7 @@ View(duplicates)
 
 
 ## Flagging data
-npoc_flags <- all_samples_dilution_corrected%>% 
+npoc_flags <- all_samples_dilution_corrected %>% 
   ## add flags 
   # Below blank 
   mutate(npoc_flag = case_when(
@@ -200,10 +200,14 @@ npoc_flags <- all_samples_dilution_corrected%>%
                          TRUE ~ tdn_mg_l))
 
 
-metadata <- read_excel("../tempest_ionic_strength/other files/Sample_list_IS_April2024.xlsx")
+metadata <- readxl::read_excel("../tempest_ionic_strength/Laboratory_Processing_Metadata_Files/Sample_list_IS_April2024.xlsx")
 
 npoc_meta <- merge(metadata[,-1], npoc_flags, by.x = "Random_ID", by.y = "sample_name")
 ordered_npoc_meta <- npoc_meta[order(npoc_meta$Treatment, npoc_meta$Wash, npoc_meta$Rep),]
+
+ordered_npoc_meta <- ordered_npoc_meta  %>%
+  mutate(Exp_Type = "NaCl") %>%
+  select(Exp_Type, Treatment, Wash, Rep, Sample_ID, Random_ID, EMSL_ID, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag)
 
 #npoc_meta <- npoc_flags %>%
 #  mutate(Treatment = stringr::str_extract(sample_name, "\\d+(?=\\.)"),
@@ -218,7 +222,7 @@ ordered_npoc_meta <- npoc_meta[order(npoc_meta$Treatment, npoc_meta$Wash, npoc_m
 View(ordered_npoc_meta)
 
 #not sure the blank is >25% is staying to the end of this data frame 
-write_csv(ordered_npoc_meta, "../tempest_ionic_strength/Data/Processed Data/DOC/TEMPEST_IS_NPOC_TN_processed.csv")
+write_csv(ordered_npoc_meta, "../tempest_ionic_strength/Data/Processed Data/DOC/DOC_L1/TEMPEST_IS_NPOC_TN_processed.csv")
 
 treatment_order <- c('0','0.1','1','5', '25', '100')
 
@@ -230,4 +234,4 @@ ordered_npoc_meta %>%
   geom_pointrange(aes(x=Wash, y=mean_doc_mg_l, ymin = mean_doc_mg_l- sd_doc_mg_l, ymax = mean_doc_mg_l + sd_doc_mg_l, color= factor(Treatment, levels= treatment_order))) +
   geom_path(aes(x=Wash, y=mean_doc_mg_l, color= factor(Treatment, levels= treatment_order), group=factor(Treatment, levels= treatment_order) )) +
   theme_classic() +
-  labs(x = "Wash", y = "DOC mgC/L", color = "% ASW")
+  labs(x = "Wash", y = "DOC mgC/L", color = "NaCl IS equ to % ASW")

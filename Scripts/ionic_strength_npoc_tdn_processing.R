@@ -57,10 +57,18 @@ read_mes <- function(readme){
 ## Create a list of files to download
 filesall <- list.files(path = directory, pattern = "Summary", full.names = TRUE) 
 files_recovery <- list.files(path = directory, pattern = "Summary.+RECOVERY", full.names = TRUE) 
-files <- base::setdiff(filesall,files_recovery)
+files_IS <- list.files(path = directory, pattern = "Summary.+IS", full.names = TRUE) 
+files_1 <- base::setdiff(filesall,files_recovery)
+files <- base::setdiff(files_1,files_IS)
+files
+
 ReadMesall <- list.files(path = directory, pattern = "Readme", full.names = TRUE) 
 ReadMesrecovery <- list.files(path = directory, pattern = "Readme.+RECOVERY", full.names = TRUE) 
-ReadMes <- base::setdiff(ReadMesall,ReadMesrecovery)
+ReadMes_IS <- list.files(path = directory, pattern = "Readme.+IS", full.names = TRUE) 
+ReadMes_1 <- base::setdiff(ReadMesall,ReadMesrecovery)
+ReadMes <- base::setdiff(ReadMes_1,ReadMes_IS)
+ReadMes
+
 
 npoc_raw <- files %>% 
   map_df(read_data) %>% 
@@ -201,24 +209,36 @@ npoc_flags <- all_samples_dilution_corrected%>%
                      TRUE ~ tdn_mg_l))
 
 npoc_wmeta <- npoc_flags %>%
-  mutate(Treatment = stringr::str_extract(sample_name, "\\d+(?=\\.)"),
-         Wash = stringr::str_extract(sample_name, "(?<=\\.[a-zA-Z].)\\d+")
-         ) %>%
+  dplyr::rename(Sample_ID = sample_name) %>%
+  mutate(Treatment = stringr::str_extract(Sample_ID, "\\d+(?=\\.)"),
+         Wash = stringr::str_extract(Sample_ID, "(?<=\\.[a-zA-Z].)\\d+"),
+         Rep = stringr::str_extract(Sample_ID, "(?<=\\.)[^.]+(?=\\.)")) %>%
   mutate(Treatment = case_when(Treatment == "01" ~ "0.1",
-                               TRUE ~ Treatment))
+                               TRUE ~ Treatment)) %>%
+  mutate(Rep = case_when(Rep == "A" ~ "1",
+                         Rep == "B" ~ "2",
+                         Rep == "C" ~ "3",
+                               TRUE ~ Rep)) %>%
+  mutate(Exp_Type = "ASW") %>%
+  select(Exp_Type, Treatment, Wash, Rep, Sample_ID, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag)
+
+
+ordered_npoc_wmeta <- npoc_wmeta[order(npoc_wmeta$Treatment, npoc_wmeta$Wash, npoc_wmeta$Rep),]
+
+
 
 # 8. Write data ----------------------------------------------------------------
 #look at all your data before saving:
 
-View(npoc_wmeta)
+View(ordered_npoc_wmeta)
 
 #not sure the blank is >25% is staying to the end of this data frame 
-write_csv(npoc_wmeta, "../tempest_ionic_strength/Data/Processed Data/DOC/ISTMP_NPOC_TDN_L1.csv")
+write_csv(ordered_npoc_wmeta, "../tempest_ionic_strength/Data/Processed Data/DOC/DOC_L1/TEMPEST_ASW_NPOC_TDN_L1.csv")
 
 treatment_order <- c('0','0.1','1','5', '25', '100')
 
 
-npoc_wmeta %>%
+ordered_npoc_wmeta %>%
   group_by(Treatment, Wash) %>%
   dplyr::summarise(mean_doc_mg_l = mean(doc_mg_l, na.rm=TRUE), sd_doc_mg_l = sd(doc_mg_l, na.rm=TRUE)) %>%
 ggplot()+
