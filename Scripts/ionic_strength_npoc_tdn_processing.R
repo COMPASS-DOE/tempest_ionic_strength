@@ -208,7 +208,7 @@ npoc_flags <- all_samples_dilution_corrected%>%
          tdn_mg_l = case_when(tdn_mg_l == "NaN" ~ NA,
                      TRUE ~ tdn_mg_l))
 
-npoc_wmeta <- npoc_flags %>%
+ordered_npoc_wmeta<- npoc_flags %>%
   dplyr::rename(Sample_ID = sample_name) %>%
   mutate(Treatment = stringr::str_extract(Sample_ID, "\\d+(?=\\.)"),
          Wash = stringr::str_extract(Sample_ID, "(?<=\\.[a-zA-Z].)\\d+"),
@@ -220,10 +220,10 @@ npoc_wmeta <- npoc_flags %>%
                          Rep == "C" ~ "3",
                                TRUE ~ Rep)) %>%
   mutate(Exp_Type = "ASW") %>%
-  select(Exp_Type, Treatment, Wash, Rep, Sample_ID, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag)
+  select(Exp_Type, Treatment, Wash, Rep, Sample_ID, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag) %>%
+  arrange(Treatment, Wash, Rep)
 
 
-ordered_npoc_wmeta <- npoc_wmeta[order(npoc_wmeta$Treatment, npoc_wmeta$Wash, npoc_wmeta$Rep),]
 
 
 
