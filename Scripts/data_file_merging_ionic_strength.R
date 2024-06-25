@@ -55,7 +55,19 @@ icp_ASW <- readxl::read_excel("../tempest_ionic_strength/Data/Processed Data/ICP
   select(Exp_Type, Treatment, Wash, everything()) %>%
   arrange(Treatment, Wash)
 
-asw_all_chem <- doc_tdn_ASW %>%
+ph_cond_ASW <- readxl::read_excel("../tempest_ionic_strength/Data/Processed Data/cond_ph/Salinity_Cond_pH_results.xlsx") %>%
+  select(`Exp-Type`:`pH-stdev`) %>%
+  rename(Exp_Type = `Exp-Type`,
+         Cond_stdev = `Cond-stdev`,
+         pH_stdev = `pH-stdev`) %>%
+  mutate(pH = as.numeric(pH)) %>%
+  mutate(Treatment = as.numeric(Treatment)) %>%
+  mutate(Wash = as.numeric(Wash)) %>%
+  select(Exp_Type, Treatment, Wash, everything()) %>%
+  arrange(Treatment, Wash)
+
+asw_all_chem <-   ph_cond_ASW %>%
+  full_join(doc_tdn_ASW, by= c("Exp_Type","Treatment","Wash")) %>%
   full_join(icp_ASW, by= c("Exp_Type","Treatment","Wash")) %>%
   full_join(EEMs_ASW, by= c("Exp_Type","Treatment","Wash")) %>%
   full_join(ABS_ASW, by= c("Exp_Type","Treatment","Wash")) %>%
