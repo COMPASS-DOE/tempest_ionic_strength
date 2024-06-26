@@ -58,6 +58,7 @@ icp_ASW <- readxl::read_excel("../tempest_ionic_strength/Data/Processed Data/ICP
 ph_cond_ASW <- readxl::read_excel("../tempest_ionic_strength/Data/Processed Data/cond_ph/Salinity_Cond_pH_results.xlsx") %>%
   select(`Exp-Type`:`pH-stdev`) %>%
   rename(Exp_Type = `Exp-Type`,
+         Cond_uScm = Cond,
          Cond_stdev = `Cond-stdev`,
          pH_stdev = `pH-stdev`) %>%
   mutate(pH = as.numeric(pH)) %>%
