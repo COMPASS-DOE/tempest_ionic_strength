@@ -124,7 +124,8 @@ npoc_flagged <- npoc_raw %>%
   filter(grepl(Study_Code, sample_name)) %>% # filter to samples only
   inner_join(blanks, by = "rundate") %>% 
   inner_join(curvepts, by= "rundate") %>%
-  mutate(tdn_flag = case_when(tdn_raw > standard_high_N ~ "value above cal curve",
+  mutate(sample_name = str_remove(sample_name, "_rerun"),
+    tdn_flag = case_when(tdn_raw > standard_high_N ~ "value above cal curve",
                               tdn_blank > 0.15*tdn_raw ~ "blank is ≥ 15% of sample value"), # flagging if blank concentration is > 20% of the sample concentration 
         npoc_flag = case_when(npoc_raw > standard_high_C  ~ "value above cal curve",
                               npoc_blank > 0.15*npoc_raw ~ "blank is ≥ 15% of sample value"), # flagging if blank concentration is > 20% of the sample concentration
@@ -178,14 +179,59 @@ duplicates <- all_samples_dilution_corrected %>% subset(duplicated(sample_name))
 
 View(duplicates)
 
-## no duplicates so removed that part of the code. 
+reps <- all_samples_dilution_corrected  %>%
+  group_by(sample_name) %>%
+  filter(n() > 1) 
+
+print(reps)
+
+reps_names <- reps %>%
+  select(sample_name) %>%
+  unique() 
+
+samples_dilution_corrected2_no_reps <- all_samples_dilution_corrected %>%
+  filter(!sample_name %in% reps_names$sample_name)
+
+#need to remove a rep if the following conditions are met:
+# 1) Flag says "high blank" &
+# 2) Values are > 20% apart 
+# If second condition is met but the first is not met, need to flag with "Inconsistent reps"
+# If they are close in value, regardless of condition for 1), can be confident that they look good. 
+
+reps_clean <- reps %>%
+  group_by(sample_name) %>%
+  mutate(doc_mg_l_max = max(doc_mg_l),
+         doc_mg_l_min = min(doc_mg_l),
+         doc_mg_l_percerr = (doc_mg_l_max - doc_mg_l_min) / doc_mg_l_max,
+         Keep_doc = case_when(doc_mg_l_percerr < .25 ~ TRUE),
+         tdn_mg_l_max = max(tdn_mg_l),
+         tdn_mg_l_min = min(tdn_mg_l),
+         tdn_mg_l_percerr = (tdn_mg_l_max - tdn_mg_l_min) / tdn_mg_l_max,
+         Keep_tdn = case_when(tdn_mg_l_percerr < .25 ~ TRUE),
+         doc_mg_l = case_when(Keep_doc == TRUE ~ doc_mg_l,
+                              FALSE ~ NA),
+         tdn_mg_l = case_when(Keep_tdn == TRUE ~ tdn_mg_l,
+                              FALSE ~ NA)) %>%
+  select(sample_name, rundate, doc_mg_l, tdn_mg_l, npoc_flag, tdn_flag) %>%
+  group_by(sample_name) %>% 
+  summarise(doc_mg_l = mean(doc_mg_l, na.rm = TRUE),
+            tdn_mg_l = mean(tdn_mg_l, na.rm = TRUE)) %>%
+  mutate(npoc_flag = case_when(doc_mg_l == 'NaN' ~ "replicates greater than 25% different",
+                               TRUE ~ "replicates analyzed and values averaged"),
+         tdn_flag = case_when(tdn_mg_l == 'NaN' ~ "replicates greater than 25% different",
+                              TRUE ~ "replicates analyzed and values averaged"))
+#Need to merge those:
+npoc_dups_merged <- samples_dilution_corrected2_no_reps %>% 
+  bind_rows(reps_clean)
+
+print(npoc_dups_merged)
 
 
 ## 7. Clean data ----------------------------------------------------------------
 
 
 ## Flagging data
-npoc_flags <- all_samples_dilution_corrected %>% 
+npoc_flags <- npoc_dups_merged %>% 
   ## add flags 
   # Below blank 
   mutate(npoc_flag = case_when(
@@ -199,8 +245,7 @@ npoc_flags <- all_samples_dilution_corrected %>%
     doc_mg_l = case_when(doc_mg_l == "NaN" ~ NA,
                          TRUE ~ doc_mg_l),
     tdn_mg_l = case_when(tdn_mg_l == "NaN" ~ NA,
-                         TRUE ~ tdn_mg_l),
-    sample_name = str_remove(sample_name, "_rerun"))
+                         TRUE ~ tdn_mg_l))
 
 
 metadata.1 <- readxl::read_excel("../tempest_ionic_strength/Laboratory_Processing_Metadata_Files/Column_exp_sample_list.xlsx", sheet= 1)
@@ -222,7 +267,7 @@ ordered_npoc_meta <- npoc_meta[order(npoc_meta$Treatment, npoc_meta$Wash, npoc_m
 
 ordered_npoc_meta <- ordered_npoc_meta  %>%
   mutate(Exp_Type = "Soil_Column") %>%
-  select(Exp_Type, Treatment, Wash, Soil_Column, Sample_ID, Random_ID, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag)
+  select(Exp_Type, Treatment, Wash, Soil_Column, sample_ID_short, sample_name, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag)
 
 npoc_means_forcdom <- ordered_npoc_meta %>%
   mutate(Random_ID = str_extract(sample_name, "TMP_ColEx_\\d+")) %>%
@@ -231,7 +276,7 @@ npoc_means_forcdom <- ordered_npoc_meta %>%
           doc_mg_l_sd = sd(doc_mg_l, na.rm = TRUE),
           tdn_mg_l_mean = mean(tdn_mg_l, na.rm = TRUE),
           tdn_mg_l_sd = sd(tdn_mg_l, na.rm = TRUE)) %>%
-  select(Random_ID, everything()
+  select(Random_ID, everything())
          
 
 # 8. Write data ----------------------------------------------------------------
