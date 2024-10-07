@@ -59,9 +59,11 @@ read_mes <- function(readme){
 filesall <- list.files(path = directory, pattern = "Summary.+IS", full.names = TRUE) 
 files_recovery <- list.files(path = directory, pattern = "Summary.IS.+RECOVERY", full.names = TRUE) 
 files <- base::setdiff(filesall,files_recovery)
+files
 ReadMesall <- list.files(path = directory, pattern = "Readme.+IS", full.names = TRUE) 
 ReadMesrecovery <- list.files(path = directory, pattern = "Readme.IS.+RECOVERY", full.names = TRUE) 
 ReadMes <- base::setdiff(ReadMesall,ReadMesrecovery)
+ReadMes
 
 npoc_raw <- files %>% 
   map_df(read_data) %>% 

@@ -286,7 +286,7 @@ write_csv(npoc_means_forcdom, "../tempest_ionic_strength/Data/Processed Data/DOC
 View(ordered_npoc_meta)
 
 #not sure the blank is >25% is staying to the end of this data frame 
-write_csv(ordered_npoc_meta, "../tempest_ionic_strength/Data/Processed Data/DOC/DOC_L1/TEMPEST_IS_NPOC_TDN_L1.csv")
+write_csv(ordered_npoc_meta, "../tempest_ionic_strength/Data/Processed Data/DOC/DOC_L1/TEMPEST_ColEx_NPOC_TDN_L1.csv")
 
 treatment_order <- c('0','0.1','1','5', '25', '100')
 
@@ -299,3 +299,4 @@ ordered_npoc_meta %>%
   geom_path(aes(x=Wash, y=mean_doc_mg_l, color= factor(Treatment, levels= treatment_order), group=factor(Treatment, levels= treatment_order) )) +
   theme_classic() +
   labs(x = "Wash", y = "DOC mgC/L", color = "NaCl IS equ to % ASW")
+
