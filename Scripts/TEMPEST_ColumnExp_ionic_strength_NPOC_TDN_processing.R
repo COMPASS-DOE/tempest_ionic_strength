@@ -269,21 +269,45 @@ ordered_npoc_meta <- ordered_npoc_meta  %>%
   mutate(Exp_Type = "Soil_Column") %>%
   select(Exp_Type, Treatment, Wash, Soil_Column, sample_ID_short, sample_name, doc_mg_l, npoc_flag, tdn_mg_l, tdn_flag)
 
-npoc_means_forcdom <- ordered_npoc_meta %>%
+
+
+
+## Bring in re-run (already processed) control data
+
+re_run_control <- read_csv("../tempest_ionic_strength/Data/Column Experiment Data/2025_control_col_data/DOC/250624_processed_TEMPEST_ColEx_NPOC_TDN.csv") %>%
+  rename(Treatment = Exp_Type,
+         Soil_Column = col_no,
+         Wash = wash,
+         sample_ID_short = Sample_ID) %>%
+  mutate(Exp_Type = "Soil_Column",
+         Soil_Column = as.numeric(Soil_Column),
+         Wash = as.numeric(Wash),
+         Random_number = Wash %>% as.integer() + 40,
+         Random_letter = LETTERS[Soil_Column],
+         sample_name = str_c("TMP_ColEx_", Random_number, "_", Random_letter  ) ) %>%
+  select(-Random_number, - Random_letter)
+
+ordered_npoc_meta_all_clean <- ordered_npoc_meta  %>%
+  filter(Treatment != "DI" ) %>% #remove non-replicated Controls 
+  full_join(re_run_control) %>%
+  filter(!is.na(Wash)) #remove conditioning samples 
+  
+npoc_means_forcdom <- ordered_npoc_meta_all_clean %>%
   mutate(Random_ID = str_extract(sample_name, "TMP_ColEx_\\d+")) %>%
   group_by(Treatment, Wash, Random_ID) %>%
   summarise(doc_mg_l_mean = mean(doc_mg_l, na.rm = TRUE),
-          doc_mg_l_sd = sd(doc_mg_l, na.rm = TRUE),
-          tdn_mg_l_mean = mean(tdn_mg_l, na.rm = TRUE),
-          tdn_mg_l_sd = sd(tdn_mg_l, na.rm = TRUE)) %>%
+            doc_mg_l_sd = sd(doc_mg_l, na.rm = TRUE),
+            tdn_mg_l_mean = mean(tdn_mg_l, na.rm = TRUE),
+            tdn_mg_l_sd = sd(tdn_mg_l, na.rm = TRUE)) %>%
   select(Random_ID, everything())
+
+write_csv(npoc_means_forcdom, "../tempest_ionic_strength/Data/Processed Data/DOC/TEMPEST_ColEx_NPOC_TDN_meansforCDOM.csv")
+
          
 
 # 8. Write data ----------------------------------------------------------------
 #look at all your data before saving:
-write_csv(npoc_means_forcdom, "../tempest_ionic_strength/Data/Processed Data/DOC/TEMPEST_ColEx_NPOC_TDN_meansforCDOM.csv")
 
-View(ordered_npoc_meta)
 
 #not sure the blank is >25% is staying to the end of this data frame 
 write_csv(ordered_npoc_meta, "../tempest_ionic_strength/Data/Processed Data/DOC/DOC_L1/TEMPEST_ColEx_NPOC_TDN_L1.csv")
