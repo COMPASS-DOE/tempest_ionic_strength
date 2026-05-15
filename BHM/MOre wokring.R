@@ -5,6 +5,7 @@ Ca_flush_model <- "model {
   # flush rates
   lambda_Ca  ~ dbeta(2, 2)
   lambda_cond ~ dbeta(2, 2)
+  lambda_DOC ~ dbeta(2, 2)
 
   # Initial Ca in porewater
   Ca_a ~ dnorm(0, 0.001) T(0,)
@@ -23,15 +24,18 @@ Ca_flush_model <- "model {
   # Observation noise
   sigma_Ca ~ dexp(5)
   sigma_cond ~ dexp(5)
+  sigma_DOC ~ dexp(5)
   
   # Carbon model
-  C_max ~ dnorm(0, 0.001) T(0,)
+  DOC_max ~ dnorm(0, 0.001) T(0,)
   k_m ~ dnorm(0, 0.001) T(0,)
-  C_init ~ dnorm(0, 0.001) T(0,)
+  DOC_init ~ dnorm(0, 0.001) T(0,)
   
-  C_c ~ dnorm(0, 1)
-  C_b ~ dnorm(0, 1) T(0,)
-  C_a ~ dnorm(0, 1) T(0,)
+  DOC_c ~ dnorm(0, 1)
+  DOC_b ~ dnorm(0, 1) T(0,)
+  DOC_a ~ dnorm(0, 1) T(0,)
+  
+  DOC_inf ~ dnorm(0, 1) T(0,)
   
   for (c in 1:n_experiments) {
     
@@ -60,10 +64,17 @@ Ca_flush_model <- "model {
   
     # Carbon module 
     # Carbon pool is initial carbon + carbon released from flooding treatment
-    C_pool[c] <- C_init + (C_max * cond_flood[c] / (k_m + cond_flood[c]))
+    DOC_pool[c] <- DOC_init + (DOC_max * cond_flood[c] / (k_m + cond_flood[c]))
     
-    lambda_C_logit[1, c] <-  C_c + C_b * Ca_pw[1, c] + C_a * cond_pw[1, c]  
-    lambda_C[1, c] <- 1/(1+exp(-R_logit))
+    DOC_R_logit[1, c] <-  DOC_c + DOC_b * Ca_pw[1, c] + DOC_a * cond_pw[1, c]  
+    DOC_R[1, c] <- DOC_pool[c]/(1+exp(-DOC_R_logit[1, c]))
+    
+    DOC_mobile[1, c] <-  DOC_pool[c] - DOC_R[1, c]
+    DOC_pw[1, c] <- DOC_mobile[1, c] + DOC_inf
+    
+    DOC_obs[1, c] ~ dlnorm(log(DOC_pw[1, c]), 1 / sigma_DOC^2)
+    
+    # Establish 
   
     for (i in 2:N_obs[c]) {
 
@@ -83,7 +94,22 @@ Ca_flush_model <- "model {
     
       # Log-normal likelihood
       cond_obs[i, c] ~ dlnorm(log(cond_pw[i, c]), 1 / sigma_cond^2)
-  
+      
+      # DOC pool
+      DOC_R_logit[i, c] <-  DOC_c + DOC_b * Ca_pw[i, c] + DOC_a * cond_pw[i, c]  
+      DOC_R[i, c] <- DOC_pool[c]/(1+exp(-DOC_R_logit[i, c]))
+      
+      # Calculate the pool that moves from previous resistant pool to new mobile pool
+      DOC_R_moving[i,c] <- DOC_R[i-1, c] - DOC_R[i, c]'
+      
+      # Update mobile pool and flush out DOC
+      DOC_mobile[i, c] <-  (DOC_mobile[i-1, c] + DOC_R_moving[i,c]) * lambda_DOC
+      
+      # Porewater is the mobile pool
+      DOC_pw[i, c] <- DOC_mobile[i, c] + DOC_inf
+    
+      DOC_obs[i, c] ~ dlnorm(log(DOC_pw[i, c]), 1 / sigma_DOC^2)
+    
     } # end loop i, rows
     
   } # end loop c, concentrations
